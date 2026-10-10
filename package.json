@@ -20,7 +20,8 @@
     "qa:resilience": "node tests/resilience.browser.mjs",
     "qa:ordering": "node tests/ordering.browser.mjs",
     "qa:public": "node tests/public.browser.mjs",
-    "deploy:cloudflare": "npm run build && npx --yes wrangler@4.149.0 deploy"
+    "deploy:cloudflare": "npm run build && npx --yes wrangler@4.149.0 deploy",
+    "qa:landing": "node tests/landing.browser.mjs"
   },
   "dependencies": {
     "@toon-format/toon": "^2.0.0",

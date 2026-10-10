@@ -32,7 +32,7 @@ export function OwnerSetup({ onConnected }: { onConnected?: () => void }) {
       await refresh();
       await api('/owner/setup', body);
       if (onConnected) onConnected();
-      else window.location.assign('/');
+      else window.location.assign('/plan');
     } catch (e) {
       setMessage((e as Error).message);
     } finally {
@@ -42,11 +42,9 @@ export function OwnerSetup({ onConnected }: { onConnected?: () => void }) {
   }
   return (
     <main className="owner-setup">
-      {!onConnected && (
-        <a href="/" className="text-button">
-          <Icon name="back" /> 返回麦搭
-        </a>
-      )}
+      <a href="/" className="text-button">
+        <Icon name="back" /> 返回麦搭首页
+      </a>
       <div className="owner-lock">
         <Icon name="lock" size={30} />
       </div>
@@ -55,7 +53,7 @@ export function OwnerSetup({ onConnected }: { onConnected?: () => void }) {
       {status?.credentialMode === 'local-file' ? (
         <>
           <p className="lede">已连接，可以开始选餐了。</p>
-          <a className="button primary full-width" href="/">
+          <a className="button primary full-width" href="/plan">
             开始选餐 <Icon name="arrow" />
           </a>
         </>
@@ -70,6 +68,11 @@ export function OwnerSetup({ onConnected }: { onConnected?: () => void }) {
           >
             去麦当劳 MCP 登录 <Icon name="link" size={16} />
           </a>
+          {status?.mcdConfigured && (
+            <a className="button primary full-width connection-continue" href="/plan">
+              继续搭配 <Icon name="arrow" size={16} />
+            </a>
+          )}
           <form onSubmit={submit} autoComplete="off">
             <label>
               麦当劳 MCP Token

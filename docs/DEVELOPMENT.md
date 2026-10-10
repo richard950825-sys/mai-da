@@ -24,6 +24,8 @@ npm run build
 npm start
 ```
 
+访问 `/` 先浏览产品首页；点击“开始搭配”进入 `/connect`，连接成功后到 `/plan`。旧的 `/owner/setup` 连接地址继续可用。首页不调用账户或供应商接口。
+
 默认示例端口是 8798。`PUBLIC_ACCESS=true` 表示每位访客使用个人麦当劳 Token；不是把服务直接监听到公网。服务仍绑定 `127.0.0.1`。本机开发不设置 `PUBLIC_ORIGIN`，保持 `TRUST_CLOUDFLARE_PROXY=false`。
 
 `npm run dev` 启动 Vite，`/api` 自动代理到后端。任何密钥都不能使用 `VITE_` 前缀。
@@ -66,6 +68,7 @@ VPC 连接需要 QUIC；遇到连接问题按 Cloudflare 官方文档检查服�
 npm test
 npm run build
 npm run qa
+npm run qa:landing
 npm run qa:public
 npm run qa:checkout
 npm run qa:ordering

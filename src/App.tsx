@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from './components/Icon';
+import { Brand } from './components/Brand';
+import { Landing } from './components/Landing';
 import { Modal } from './components/Modal';
 import { CaloriePlanner } from './components/CaloriePlanner';
 import { StorePicker } from './components/StorePicker';
@@ -18,18 +20,6 @@ import {
   isMenuContext,
 } from './lib/api';
 
-function Brand() {
-  return (
-    <a href="/" className="brand" aria-label="麦搭首页">
-      <span className="official-mark">
-        <img src="/brand/mcdonalds-golden-arches.jpg" alt="麦当劳金色拱门" />
-      </span>
-      <span className="brand-wordmark">
-        麦搭<small>非官方用餐助手</small>
-      </span>
-    </a>
-  );
-}
 function Intro({ onChoose }: { onChoose: (calorie: boolean) => void }) {
   return (
     <main className="intro-layout">
@@ -66,6 +56,12 @@ function Intro({ onChoose }: { onChoose: (calorie: boolean) => void }) {
   );
 }
 export default function App() {
+  if (location.pathname === '/') return <Landing />;
+  if (['/connect', '/owner/setup'].includes(location.pathname)) return <OwnerSetup />;
+  return <MealPlanner />;
+}
+
+function MealPlanner() {
   const [screen, setScreen] = useState<'intro' | 'calories' | 'planner'>('intro');
   const [status, setStatus] = useState<ServiceStatus | null>(null);
   const [statusError, setStatusError] = useState('');
@@ -357,7 +353,6 @@ export default function App() {
       }
     }
   }
-  if (location.pathname === '/owner/setup') return <OwnerSetup />;
   if (status?.accessMode === 'visitor' && !configured)
     return (
       <OwnerSetup

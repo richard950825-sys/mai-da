@@ -24,7 +24,7 @@ try{
   if(endpoint==='/api/orders/confirm'){writes++;throw Error('Order confirm must not be called');}
   return route.fulfill({status:503,json:{error:{message:'Test route not configured'}}});
  });
- await page.goto('http://127.0.0.1:5189');assert.equal(await page.title(),'麦搭 · 这一餐，刚刚好');
+ await page.goto('http://127.0.0.1:5189/plan');assert.equal(await page.title(),'麦搭 · 这一餐，刚刚好');
  await page.getByRole('button',{name:'不用，直接开始'}).click();
  await page.getByLabel('所在城市').fill('测试城市');await page.getByRole('button',{name:'查找餐厅'}).click();
  await page.locator('.store-row').first().click();await page.getByRole('button',{name:'确认这家餐厅'}).click();

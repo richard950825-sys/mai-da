@@ -10,7 +10,7 @@ const output = process.env.QA_OUTPUT || '/tmp/mcd-public-browser';
 await mkdir(output, { recursive: true });
 const key = 'offline-server-key-never-in-browser';
 process.env.DEEPSEEK_API_KEY = key;
-const calls = [], posts = [], consoleErrors = [], pageErrors = [], leaks = [];
+const calls = [], posts = [], apiRequests = [], consoleErrors = [], pageErrors = [], leaks = [];
 const meal = { intent: 'meal', clarificationReason: null, goal: 'balanced', clearKcalTarget: false, kcalTarget: null, kcalMin: null, kcalMax: null, proteinMin: null, sugarMax: null, sodiumMax: null, budget: null, avoid: [], preferCoupons: false, includeKeywords: [], includeAnyKeywords: [], unsweetenedDrink: false, beverageOnlyAllowed: false };
 const port = 5194, base = `http://127.0.0.1:${port}`;
 let clock = Date.parse('2026-10-10T03:00:00Z');
@@ -38,10 +38,13 @@ try {
   page = await context.newPage(); page.setDefaultTimeout(8000);
   page.on('pageerror', e => pageErrors.push(e.message));
   page.on('console', m => { if (m.type() === 'error') consoleErrors.push(m.text()); });
-  page.on('request', r => { if (r.method() === 'POST') posts.push({ url: r.url(), body: r.postData() }); });
+  page.on('request', r => { if (new URL(r.url()).pathname.startsWith('/api/')) apiRequests.push(r.url()); if (r.method() === 'POST') posts.push({ url: r.url(), body: r.postData() }); });
   page.on('response', async r => { if (new URL(r.url()).origin === base) { const body = await r.text().catch(() => ''); if (body.includes(key) || body.includes('visitor-browser-test-token')) leaks.push(new URL(r.url()).pathname); } });
-  await page.goto(base); await page.getByRole('heading', { name: '连接麦当劳账户' }).waitFor();
-  assert.equal(page.url(), `${base}/`); assert.equal(await page.title(), '麦搭 · 这一餐，刚刚好');
+  await page.goto(base); await page.getByRole('heading', { name: /今天这顿/ }).waitFor();
+  assert.equal(await page.locator('input[type=password]').count(), 0); assert.equal(apiRequests.length, 0);
+  await page.locator('.landing-hero').getByRole('link', { name: '开始搭配' }).click();
+  await page.getByRole('heading', { name: '连接麦当劳账户' }).waitFor();
+  assert.equal(page.url(), `${base}/connect`); assert.equal(await page.title(), '麦搭 · 这一餐，刚刚好');
   assert.equal(await page.locator('input[type=password]').count(), 1); assert.equal(await page.getByText('DeepSeek API Key').count(), 0);
   const link = page.getByRole('link', { name: '去麦当劳 MCP 登录' });
   assert.equal(await link.getAttribute('href'), 'https://open.mcd.cn/mcp'); assert.equal(await link.getAttribute('target'), '_blank');
@@ -50,6 +53,11 @@ try {
   await page.getByLabel('麦当劳 MCP Token', { exact: true }).fill('invalid-test-token'); await page.getByRole('button', { name: '连接并开始' }).click();
   await page.getByRole('alert').waitFor(); assert.equal(await page.getByLabel('麦当劳 MCP Token', { exact: true }).inputValue(), '');
   await page.getByLabel('麦当劳 MCP Token', { exact: true }).fill('visitor-browser-test-token'); await page.getByRole('button', { name: '连接并开始' }).click();
+  await page.getByRole('button', { name: '不用，直接开始' }).waitFor();
+  assert.equal(page.url(), `${base}/plan`);
+  await page.goto(base); await page.getByRole('heading', { name: /今天这顿/ }).waitFor();
+  await page.locator('.landing-hero').getByRole('link', { name: '开始搭配' }).click();
+  await page.getByRole('link', { name: '继续搭配' }).click();
   await page.getByRole('button', { name: '不用，直接开始' }).waitFor();
   assert.equal(await page.locator('input[type=password]').count(), 0);
   await page.evaluate(() => sessionStorage.setItem('mcd-current-order', JSON.stringify({ state: 'completed', orderId: 'previous-account-order', label: 'old account', paymentUrl: 'https://mcd.cn/test-only' })));
@@ -80,14 +88,14 @@ try {
   await page.screenshot({ path: `${output}/mobile-connect.png`, fullPage: true });
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   const visitorB = await browser.newPage({ viewport: { width: 320, height: 740 } });
-  await visitorB.goto(base); await visitorB.getByRole('heading', { name: '连接麦当劳账户' }).waitFor();
+  await visitorB.goto(`${base}/plan`); await visitorB.getByRole('heading', { name: '连接麦当劳账户' }).waitFor();
   assert(await visitorB.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   assert.equal(await page.locator('vite-error-overlay').count(), 0);
   assert.deepEqual(pageErrors, []); assert.deepEqual(leaks, []);
   assert(consoleErrors.every(e => /server responded with a status of (502|429)/.test(e)), consoleErrors.join('\n'));
   assert(posts.every(p => new URL(p.url).origin === base && !p.body.includes(key)));
   assert(posts.filter(p => p.body?.includes('visitor-browser-test-token')).every(p => new URL(p.url).pathname === '/api/owner/setup'));
-  await writeFile(`${output}/summary.json`, JSON.stringify({ passed: true, browser: 'Playwright; Browser plugin not available', url: base, viewports: ['1440x1000', '390x844', '320x740'], checks: ['first visit token-only entry and official login link', 'invalid token rejected and input cleared', 'connected session survives refresh', 'tokens absent from storage and response bodies', 'LLM key absent from browser requests, responses and bundles', 'existing store selection works with CSRF', 'ten shared AI calls; eleventh blocked before provider', 'visible remaining count and midnight reset notice', 'idle timeout and independent visitor require reconnect', 'no horizontal overflow, blank screen, framework overlay or JS errors'], expectedHttpErrors: [502, 429], pageErrors, leaks }, null, 2));
+  await writeFile(`${output}/summary.json`, JSON.stringify({ passed: true, browser: 'Playwright; Browser plugin not available', url: base, viewports: ['1440x1000', '390x844', '320x740'], checks: ['landing loads without API requests; CTA opens token page', 'valid token leads to /plan; connected visitors can continue', 'token-only entry and official login link', 'invalid token rejected and input cleared', 'connected session survives refresh', 'tokens absent from storage and response bodies', 'LLM key absent from browser requests, responses and bundles', 'existing store selection works with CSRF', 'ten shared AI calls; eleventh blocked before provider', 'visible remaining count and midnight reset notice', 'idle timeout and independent visitor require reconnect', 'no horizontal overflow, blank screen, framework overlay or JS errors'], expectedHttpErrors: [502, 429], pageErrors, leaks }, null, 2));
   console.log(JSON.stringify({ passed: true, output }));
 } catch (e) { if (page) await page.screenshot({ path: `${output}/failure.png`, fullPage: true }); throw e; }
 finally { await browser.close(); await new Promise(r => server.close(r)); }

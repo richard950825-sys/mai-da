@@ -27,7 +27,7 @@ async function step(id, name, fn) {
   await save();
 }
 async function fresh({ select = true, consent = true } = {}) {
-  await page.goto(base); assert.equal(await page.title(), '麦搭 · 这一餐，刚刚好');
+  await page.goto(`${base}/plan`); assert.equal(await page.title(), '麦搭 · 这一餐，刚刚好');
   await page.getByRole('button', { name: '不用，直接开始' }).click();
   if (select) {
     await page.getByLabel('所在城市').fill('上海'); await page.getByLabel('附近地标', { exact: false }).fill('人民广场');

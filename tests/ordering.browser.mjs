@@ -31,7 +31,7 @@ try {
    }
    throw Error('Unmocked route '+path);
   });
-  await page.goto(base);await page.getByRole('button',{name:'不用，直接开始'}).click();
+  await page.goto(`${base}/plan`);await page.getByRole('button',{name:'不用，直接开始'}).click();
   await page.getByRole('button',{name:'2人',exact:true}).click();assert.equal(await page.getByRole('button',{name:'2人',exact:true}).getAttribute('aria-pressed'),'true');
   await page.getByRole('textbox',{name:'描述你的本餐需求'}).fill('单人牛肉无糖可乐');await page.getByRole('button',{name:'1人',exact:true}).click();
   await page.getByLabel('所在城市').fill('测试');await page.getByRole('button',{name:'查找餐厅'}).click();await page.locator('.store-row').first().click();await page.getByRole('button',{name:'确认这家餐厅'}).click();

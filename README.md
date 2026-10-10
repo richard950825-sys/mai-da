@@ -10,7 +10,7 @@
 
 </div>
 
-![麦搭电脑端首页：可以先估算热量，也可以直接开始选餐](docs/images/desktop-intro.png)
+![麦搭产品首页：先了解应用，点击开始搭配后连接自己的麦当劳账户](docs/images/desktop-home.png)
 
 > **“不超过 60 元，牛肉，无糖可乐，套餐优先。”**
 >
@@ -38,8 +38,9 @@
 
 <table>
   <tr>
-    <td align="center"><img src="docs/images/mobile-meal.png" width="300" alt="手机端真实餐品推荐" /><br /><b>选一份喜欢的搭配</b></td>
-    <td align="center"><img src="docs/images/mobile-cart.png" width="300" alt="手机端真实本餐明细与核价" /><br /><b>金额、餐品、取餐方式，一起核对</b></td>
+    <td align="center"><img src="docs/images/mobile-home.png" width="240" alt="手机端麦搭产品首页" /><br /><b>先了解麦搭，再开始</b></td>
+    <td align="center"><img src="docs/images/mobile-meal.png" width="240" alt="手机端真实餐品推荐" /><br /><b>选一份喜欢的搭配</b></td>
+    <td align="center"><img src="docs/images/mobile-cart.png" width="240" alt="手机端真实本餐明细与核价" /><br /><b>金额、餐品、取餐方式，一起核对</b></td>
   </tr>
 </table>
 
@@ -47,7 +48,7 @@
 
 ## 三步，把这一餐安排好
 
-1. **连接自己的麦当劳账户。** 到官方 MCP 页面登录并复制 Token，回到麦搭粘贴即可。无需填写 AI 密钥。
+1. **了解麦搭，连接账户。** 在首页点击“开始搭配”，到连接页填写自己的麦当劳 MCP Token。页面提供官方登录入口，无需填写 AI 密钥。
 2. **选餐厅，说需求。** 例如“预算 40 元，想吃鸡肉”，或者“两个人，牛肉套餐优先”。不想估算热量？直接开始。
 3. **选搭配，再核对。** 调整餐品数量、选择取餐方式，确认明细和条款后创建订单，再前往麦当劳官方页面支付。
 

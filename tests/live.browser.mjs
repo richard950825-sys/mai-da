@@ -18,7 +18,7 @@ async function pageFor(viewport) {
   page.on('response', r => { if (r.status() >= 400) httpFailures.push({ path: new URL(r.url()).pathname, status: r.status() }); });
   page.on('request', r => { if (r.method() === 'POST') posts.push({ path: new URL(r.url()).pathname, body: r.postData() }); });
   await page.route('**/api/orders/confirm', async route => { errors.push('Unexpected order attempt was blocked'); await route.abort(); });
-  await page.goto(base); assert.equal(await page.title(), '麦搭 · 这一餐，刚刚好');
+  await page.goto(`${base}/plan`); assert.equal(await page.title(), '麦搭 · 这一餐，刚刚好');
   await page.getByRole('heading', { name: '是否需要帮你规划本餐热量？' }).waitFor();
   assert.equal(await page.locator('vite-error-overlay').count(), 0);
   evidence.orderingEnabled = (await (await page.request.get(`${base}/api/status`)).json()).ordering.enabled;
@@ -69,7 +69,7 @@ try {
   const prepareResponse = responseFor(page, '/orders/prepare'); await page.getByRole('button', { name: '确认餐品与金额' }).click(); assert.equal((await prepareResponse).status(), 200);
   await page.getByRole('heading', { name: '确认这一餐' }).waitFor(); const review = await page.locator('.checkout-review').innerText();
   assert.match(review, /无糖可口可乐.*杯/); assert(review.includes(pickupLabel));
-  if (evidence.orderingEnabled) { assert(await page.getByRole('button', { name: '确认创建订单，前往支付' }).isDisabled()); assert.equal(await page.locator('.checkout-review input').isChecked(), false); } else { assert.match(review, /没有创建订单或扣款/); }
+  if (evidence.orderingEnabled) { assert(await page.getByRole('button', { name: '确认创建订单，前往支付' }).isDisabled()); assert.equal(await page.locator('.checkout-review input').isChecked(), false); } else { assert.match(review, /本站暂未开放下单/); }
   await page.screenshot({ path: `${output}/desktop-review.png`, fullPage: false });
   checks.push({ name: 'immutable review identifies real drink size and Chinese pickup; confirmation gate remains untouched' });
   await page.getByRole('button', { name: '关闭', exact: true }).click();
@@ -77,8 +77,8 @@ try {
   const unrelated = responseFor(page, '/recommendations'); await page.getByRole('button', { name: '开始规划', exact: true }).click(); assert.equal((await unrelated).status(), 422);
   await page.getByText('这里可以帮你搭配麦当劳的一餐。', { exact: false }).waitFor(); assert.equal(await page.locator('.plan').count(), 0); checks.push({ name: 'off-topic input produces helpful stop state' });
   await page.goto(`${base}/owner/setup`); await page.getByText('已连接，可以开始选餐了', { exact: false }).waitFor(); assert.equal(await page.locator('input[type=password]').count(), 0); checks.push({ name: 'configured file mode is accurately described without credential re-entry' });
-  await page.goto(`${base}/verify`); await page.getByRole('button', { name: '验证 DeepSeek 4.1 Flash' }).click(); await page.getByText('DeepSeek-V4.1-Flash 真实最小请求成功', { exact: false }).waitFor();
-  await page.getByRole('button', { name: '验证麦当劳只读连接' }).click(); await page.getByText('麦当劳真实连接成功', { exact: false }).waitFor(); checks.push({ name: 'verification page performs real provider requests in file mode' });
+  await page.goto(`${base}/verify`); await page.getByRole('button', { name: '检查 AI 连接' }).click(); await page.getByText('AI 服务连接成功', { exact: false }).waitFor();
+  await page.getByRole('button', { name: '检查麦当劳连接' }).click(); await page.getByText('麦当劳连接成功', { exact: false }).waitFor(); checks.push({ name: 'verification page performs real provider requests in file mode' });
   const mobile = await pageFor({ width: 390, height: 844 });
   await mobile.screenshot({ path: `${output}/mobile-intro.png`, fullPage: false });
   await selectAndPlan(mobile, 'mobile');

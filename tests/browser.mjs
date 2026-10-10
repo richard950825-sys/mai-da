@@ -13,7 +13,7 @@ const results=[];const errors=[];const network=[];const httpFailures=[];const ex
 try{
  const context=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN'});
  const page=await context.newPage();lastPage=page;page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'){if(m.text().includes('server responded with a status of 503'))expectedResourceErrors.push(m.text());else errors.push(m.text())}});page.on('response',r=>{if(r.status()>=400)httpFailures.push({path:new URL(r.url()).pathname,status:r.status()})});page.on('request',r=>{if(r.method()==='POST')network.push({url:r.url(),body:r.postData()})});
- await page.goto(base);await page.getByRole('heading',{name:'是否需要帮你规划本餐热量？'}).waitFor();
+ await page.goto(`${base}/plan`);await page.getByRole('heading',{name:'是否需要帮你规划本餐热量？'}).waitFor();
  assert.equal(await page.title(),'麦搭 · 这一餐，刚刚好');assert.equal(await page.locator('vite-error-overlay').count(),0);
  await page.screenshot({path:`${output}/desktop-intro.png`,fullPage:true});results.push('Desktop entry: exact optional calorie question, not blank, correct title');
  await page.getByRole('button',{name:'不用，直接开始'}).click();await page.getByRole('textbox',{name:'描述你的本餐需求'}).waitFor();
@@ -35,7 +35,7 @@ try{
  await page.getByRole('button',{name:'麦乐送',exact:true}).click();await page.getByRole('button',{name:'读取我的配送地址'}).click();await page.getByText('尚未连接麦当劳账户，无法读取真实营养、门店和菜单').waitFor();results.push('Delivery path exposes existing-address read, fails honestly with no token');
  await page.getByRole('button',{name:'数据连接'}).click();await page.getByRole('heading',{name:'数据连接',exact:true}).waitFor();await page.keyboard.press('Escape');assert.equal(await page.locator('dialog[open]').count(),0);
  await page.goto(`${base}/owner/setup`);await page.getByRole('heading',{name:'连接麦当劳账户'}).waitFor();assert.equal(await page.locator('input[type=password]:disabled').count(),1);results.push('Owner setup disabled by default; one token field disabled, no credential values entered');
- const phone=await browser.newContext({viewport:{width:390,height:844},isMobile:true,deviceScaleFactor:1,locale:'zh-CN'});const mobile=await phone.newPage();mobile.on('pageerror',e=>errors.push(e.message));await mobile.goto(base);await mobile.screenshot({path:`${output}/mobile-intro.png`,fullPage:true});
+ const phone=await browser.newContext({viewport:{width:390,height:844},isMobile:true,deviceScaleFactor:1,locale:'zh-CN'});const mobile=await phone.newPage();mobile.on('pageerror',e=>errors.push(e.message));await mobile.goto(`${base}/plan`);await mobile.screenshot({path:`${output}/mobile-intro.png`,fullPage:true});
  assert.equal(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
  await mobile.getByRole('button',{name:'不用，直接开始'}).click();await mobile.screenshot({path:`${output}/mobile-planner.png`,fullPage:true});assert.equal(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
  results.push('390px mobile intro and planner: no horizontal overflow, functional primary action');
