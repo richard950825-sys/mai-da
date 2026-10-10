@@ -19,3 +19,9 @@ RELEASE.json
 *.tar
 *.tar.gz
 .cloudflared.env
+# Private workspace history is not part of the current application source.
+HANDOFF.md
+HANDOFF-FILES.json
+CHECKPOINT.json
+unfinished-sites-port/
+provenance/
