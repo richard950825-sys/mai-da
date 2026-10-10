@@ -1,0 +1,16 @@
+[Unit]
+Description=Mai Da private Cloudflare Tunnel
+After=network.target
+
+[Service]
+Type=simple
+# This file must be mode 0600 and contain TUNNEL_TOKEN; never add it to Git.
+EnvironmentFile=/srv/mai-da/.cloudflared.env
+ExecStart=/usr/local/bin/cloudflared tunnel --no-autoupdate --protocol quic --loglevel warn run
+Restart=always
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

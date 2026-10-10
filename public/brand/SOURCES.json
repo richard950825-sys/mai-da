@@ -1,0 +1,20 @@
+{
+  "retrievedAt": "2026-10-10T06:25:40.862Z",
+  "assets": [
+    {
+      "path": "mcdonalds-golden-arches.jpg",
+      "sourcePage": "https://www.mcdonalds.com.cn/page/Brand-identity",
+      "imageUrl": "https://officiaweb-afd.mcdonalds.com.cn/public/files/attachment/M%20logo-white.jpg",
+      "use": "Official unmodified Golden Arches asset; rendered with CSS viewport framing.",
+      "sha256": "19df5b4149fbb774804712d1c5c1970c31349b278c470e4650e6919d51c32912"
+    },
+    {
+      "path": "big-mac.png",
+      "sourcePage": "https://mcp.mcd.cn",
+      "imageUrl": "https://menu-img.mcd.cn/pcm/prod/menu/20260309/product/MS_1100_320.png",
+      "use": "Official public menu image, used decoratively on the introductory screen.",
+      "sha256": "6ee532bcce7541c8240d629cefdee9990e07709bae939f63ceae79364414f100"
+    }
+  ],
+  "dynamicImages": "Recommendation images pass through from the live official query-meals and query-meal-detail responses; no generated food or brand assets."
+}

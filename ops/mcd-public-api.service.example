@@ -1,0 +1,16 @@
+[Unit]
+Description=Mai Da public API through a private Cloudflare Tunnel
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/srv/mai-da
+# Use a private file with PORT=8799 and the HTTPS PUBLIC_ORIGIN.
+ExecStart=/usr/bin/env node --env-file=/srv/mai-da/.env.public /srv/mai-da/server/index.mjs
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

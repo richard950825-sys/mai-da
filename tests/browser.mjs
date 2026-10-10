@@ -1,0 +1,46 @@
+import { existsSync } from 'node:fs';
+import { chromium } from 'playwright';
+import { createApp } from '../server/app.mjs';
+import { mkdir,writeFile } from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const output=process.env.QA_OUTPUT||'/tmp/mcd-meal-planner-qa';
+await mkdir(output,{recursive:true});
+const port=5188;const base=`http://127.0.0.1:${port}`;
+const server=createApp({port,staticDir:process.env.QA_STATIC_DIR,ownerSetupEnabled:false,providerAccessEnabled:false,orderingEnabled:false}).createServer();
+await new Promise(r=>server.listen(port,'127.0.0.1',r));
+const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : '/usr/bin/google-chrome'),headless:true,args:['--no-sandbox']});
+const results=[];const errors=[];const network=[];const httpFailures=[];const expectedResourceErrors=[];let lastPage;
+try{
+ const context=await browser.newContext({viewport:{width:1440,height:1000},locale:'zh-CN'});
+ const page=await context.newPage();lastPage=page;page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'){if(m.text().includes('server responded with a status of 503'))expectedResourceErrors.push(m.text());else errors.push(m.text())}});page.on('response',r=>{if(r.status()>=400)httpFailures.push({path:new URL(r.url()).pathname,status:r.status()})});page.on('request',r=>{if(r.method()==='POST')network.push({url:r.url(),body:r.postData()})});
+ await page.goto(base);await page.getByRole('heading',{name:'是否需要帮你规划本餐热量？'}).waitFor();
+ assert.equal(await page.title(),'麦搭 · 这一餐，刚刚好');assert.equal(await page.locator('vite-error-overlay').count(),0);
+ await page.screenshot({path:`${output}/desktop-intro.png`,fullPage:true});results.push('Desktop entry: exact optional calorie question, not blank, correct title');
+ await page.getByRole('button',{name:'不用，直接开始'}).click();await page.getByRole('textbox',{name:'描述你的本餐需求'}).waitFor();
+ await page.getByRole('textbox',{name:'描述你的本餐需求'}).fill('预算 35 元，想吃鸡肉，饮料无糖，优先用优惠券');
+ await page.getByRole('button',{name:'开始规划',exact:true}).click();assert.match(await page.locator('[role=alert]').innerText(),/先在下方选一家餐厅/);
+ await page.getByLabel('所在城市').fill('上海');await page.getByRole('button',{name:'查找餐厅'}).click();await page.getByText('尚未连接麦当劳账户，无法读取真实营养、门店和菜单').waitFor();
+ assert.equal(await page.locator('.plan').count(),0);assert.equal(await page.locator('.store-row').count(),0);
+ await page.screenshot({path:`${output}/desktop-planner.png`,fullPage:true});results.push('No-calorie path reaches NL input; missing live credentials show honest blocked state without products or prices');
+ await page.getByRole('button',{name:'本餐热量',exact:true}).click();await page.getByPlaceholder('例如：650').fill('650');await page.getByRole('button',{name:'保存目标'}).click();await page.getByRole('button',{name:'650 kcal',exact:true}).waitFor();
+ await page.getByRole('button',{name:'650 kcal',exact:true}).click();await page.getByRole('button',{name:'关闭',exact:true}).click();assert.equal(await page.locator('dialog[open]').count(),0);results.push('Calorie edit and repeated modal open/close preserve state without overlay');
+ await page.getByRole('button',{name:'重新开始'}).click();await page.getByRole('button',{name:'需要，帮我估算'}).click();
+ await page.getByLabel('年龄', {exact:true}).fill('30');await page.getByLabel('身高 cm').fill('170');await page.getByLabel('体重 kg').fill('65');
+ await page.getByLabel('公式使用的性别参数').selectOption('male');await page.getByLabel('日常活动量').selectOption('sedentary');
+ await page.getByRole('button',{name:'粗略估算',exact:true}).click();await page.locator('[role=alert]').waitFor();
+ await page.getByRole('checkbox').check();await page.getByRole('button',{name:'粗略估算',exact:true}).click();await page.getByText('估算每日维持能量').waitFor();
+ const leak=network.filter(r=>r.body?.includes('heightCm')||r.body?.includes('weightKg')||r.body?.includes('sexParameter'));
+ assert.equal(leak.length,0);await page.screenshot({path:`${output}/desktop-calculator.png`,fullPage:true});
+ await page.getByRole('button',{name:'用这个目标继续'}).click();await page.getByRole('textbox',{name:'描述你的本餐需求'}).waitFor();results.push('Adult calculator eligibility gate, rough estimate, meal allocation and return to same composer; no body data network requests');
+ await page.getByRole('button',{name:'麦乐送',exact:true}).click();await page.getByRole('button',{name:'读取我的配送地址'}).click();await page.getByText('尚未连接麦当劳账户，无法读取真实营养、门店和菜单').waitFor();results.push('Delivery path exposes existing-address read, fails honestly with no token');
+ await page.getByRole('button',{name:'数据连接'}).click();await page.getByRole('heading',{name:'数据连接',exact:true}).waitFor();await page.keyboard.press('Escape');assert.equal(await page.locator('dialog[open]').count(),0);
+ await page.goto(`${base}/owner/setup`);await page.getByRole('heading',{name:'连接麦当劳账户'}).waitFor();assert.equal(await page.locator('input[type=password]:disabled').count(),1);results.push('Owner setup disabled by default; one token field disabled, no credential values entered');
+ const phone=await browser.newContext({viewport:{width:390,height:844},isMobile:true,deviceScaleFactor:1,locale:'zh-CN'});const mobile=await phone.newPage();mobile.on('pageerror',e=>errors.push(e.message));await mobile.goto(base);await mobile.screenshot({path:`${output}/mobile-intro.png`,fullPage:true});
+ assert.equal(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+ await mobile.getByRole('button',{name:'不用，直接开始'}).click();await mobile.screenshot({path:`${output}/mobile-planner.png`,fullPage:true});assert.equal(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+ results.push('390px mobile intro and planner: no horizontal overflow, functional primary action');
+ assert.deepEqual(errors,[]);assert.deepEqual(httpFailures,[{path:'/api/stores/search',status:503},{path:'/api/addresses',status:503}]);assert.ok(expectedResourceErrors.length<=httpFailures.length);results.push('No unexpected browser errors; two intentional disconnected-provider 503 responses verified');
+ await writeFile(`${output}/summary.json`,JSON.stringify({passed:true,browser:'Playwright Chromium; Browser plugin unavailable',viewports:['1440×1000','390×844'],results,errors,expectedHttpFailures:httpFailures,networkPostCount:network.length},null,2));
+ console.log(JSON.stringify({passed:true,output,checks:results},null,2));
+}catch(error){if(lastPage){await lastPage.screenshot({path:`${output}/failure.png`,fullPage:true}).catch(()=>{});await writeFile(`${output}/failure-state.json`,JSON.stringify({url:lastPage.url(),title:await lastPage.title(),body:await lastPage.locator('body').innerText(),errors},null,2)).catch(()=>{})}await writeFile(`${output}/failure.txt`,error.stack||String(error));throw error}
+finally{await browser.close();await new Promise(r=>server.close(r))}

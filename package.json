@@ -1,0 +1,48 @@
+{
+  "name": "mai-da",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "server": "node server/index.mjs",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts tests/*.test.mjs",
+    "qa": "node tests/browser.mjs",
+    "start:owner": "node --env-file-if-exists=.env.local start-owner.mjs",
+    "qa:checkout": "node tests/checkout.browser.mjs",
+    "qa:all": "npm run qa && npm run qa:checkout && npm run qa:ordering",
+    "start": "node --env-file-if-exists=.env.local server/index.mjs",
+    "qa:live": "node --env-file=.env.local --import tsx scripts/verify-live.mjs",
+    "qa:live:browser": "node tests/live.browser.mjs",
+    "qa:scenarios": "node tests/scenarios.browser.mjs",
+    "qa:resilience": "node tests/resilience.browser.mjs",
+    "qa:ordering": "node tests/ordering.browser.mjs",
+    "qa:public": "node tests/public.browser.mjs",
+    "deploy:cloudflare": "npm run build && npx --yes wrangler@4.149.0 deploy"
+  },
+  "dependencies": {
+    "@toon-format/toon": "^2.0.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "playwright": "1.55.0",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  },
+  "description": "麦搭：说出预算、口味和人数，用真实麦当劳菜单搭配这一餐。",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/richard950825-sys/mai-da.git"
+  }
+}

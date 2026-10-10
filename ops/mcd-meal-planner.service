@@ -1,0 +1,15 @@
+[Unit]
+Description=McD meal planner (private loopback, live reads)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/srv/mai-da
+ExecStart=/usr/bin/env node --env-file=.env.local /srv/mai-da/server/index.mjs
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

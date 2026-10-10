@@ -1,0 +1,7 @@
+# 麦搭 UI design system
+
+The separately retained design concept is an internal specification, not product data. Reference images are not redistributed with the app source. Actual Mobbin screenshots inspected: https://mobbin.com/screens/3f7253ba-8294-4be9-be01-6ce9fe3232f0 and https://mobbin.com/screens/1bcbf1aa-2727-4e59-b388-6f52962d6dbb . Also inspected pickup/delivery address and review screens in https://mobbin.com/flows/0519347f-ca84-4542-a0a9-ad6c15e093a8 and https://mobbin.com/flows/03f68e56-1e2b-4144-a835-62f540f9cfe3 . US product names, USD prices and nutrition are visual references only; never used as China menu data.
+
+White canvas #ffffff; surface #f7f7f7; text #171717; muted #747474; border #dedede; yellow #ffbc0d; red #db241c. Black headings and yellow action controls form hierarchy. Borders instead of card shadows; 8–12px radii, circles only for compact actions. Desktop shell: 84px header, max-width 1440, 64px gutters; question column 64%, editorial rail 36%. Workspace: step rail, open task column, restrained summary rail. Mobile: one column, 22px gutters, no decorative rail. Body system sans-serif; 16px body/14px utility; question 54px desktop/34px phone; no tiny legal text below 12px. Code-native icons stroke1.7.
+
+Required initial copy: “是否需要帮你规划本餐热量？”; choices “需要，帮我估算” and “不用，直接开始”. First no-calorie path leads directly to the same composer used by calculator completion. No nonfunctional navigation. Body data remains component memory, never localStorage/network. No production fixtures or silently substituted products/prices.
